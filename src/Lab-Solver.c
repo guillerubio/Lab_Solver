@@ -27,41 +27,66 @@ struct Maze* Maze(char* maze_string){
         }
         aux++;
     }
+    lRows++; // Don't forget that last one
     // Declaration of pointer m to allocation of memory that will hold the object of type Maze, and assignment of its attributes
     struct Maze *m = (struct Maze*) malloc(sizeof(struct Maze));
     (*m).rows = lRows;
     (*m).columns = lColumns;
+
     // Memory allocation for maze matrix
     char ** matrix = (char **) malloc((*m).columns * sizeof(char*));
     for (int i=0; i < lRows; i++)
-        matrix[i] = (char**) malloc((*m).columns * sizeof(char));
-    // From string to matrix huzza!
-/*    aux = maze_string; // Auxiliary pointer reset
+        matrix[i] = (char*) malloc(((*m).columns + 1) * sizeof(char));
+
+    // From string to matrix huzzah!
+    aux = maze_string; // Auxiliary pointer reset
     int i = 0; // row iteration variable
     int j = 0; // column iteration variable
-    while(aux) {
-        if (*aux != '/n') {
+    while(aux && i<lRows) {
+        if (*aux != '\n') {
             matrix[i][j] = *aux;
             j++;
         } else {
+            matrix[i][j] = '\0';
             i++;
             j=0;
         }
         aux++;
-    }*/
-
+    }
+    (*m).matrix = matrix;
     return m;
-
 };
+
+// Maze to String
+char* toString(struct Maze maze){
+    char* ans = (char*) malloc(sizeof(char) * maze.columns * maze.rows + 1);
+    char* aux = ans;
+    // matrix[i][j]
+    for(int i = 0; i < maze.rows; i++){
+        for (int j = 0; j < maze.columns; j++){
+            *aux = maze.matrix[i][j];
+            aux++;
+        }
+    }
+    *aux = '\0';
+    return ans;
+}
 
 int main(){
 
     char* input = "## ##  #\n"
                   "###   # \n"
-                  "######  \n";
+                  "###### #\0";
     struct Maze* maze = Maze(input);
-    printf("%d\n", maze->columns);
-    printf("%d\n", maze->rows);
+    printf("columns: %d\n", maze->columns);
+    printf("rows: %d\n", maze->rows);
+
+    char** matrix = (*maze).matrix;
+    printf("address of matrix: %p\n", matrix);
+    printf("%c\n",matrix[0][0]);
+    char* totring = toString(*maze);
+
+    printf("%s\n", totring);
     return 0;
 
 //    char *input = "  #  \n ##  \n#   #\n";
