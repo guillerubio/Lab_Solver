@@ -59,7 +59,7 @@ struct Maze* Maze(char* maze_string){
 
 // Maze to String
 char* toString(struct Maze maze){
-    char* ans = (char*) malloc(sizeof(char) * maze.columns * maze.rows + 1);
+    char* ans = (char*) malloc(sizeof(char) * maze.columns * maze.rows + maze.rows);
     char* aux = ans;
     // matrix[i][j]
     for(int i = 0; i < maze.rows; i++){
@@ -67,10 +67,15 @@ char* toString(struct Maze maze){
             *aux = maze.matrix[i][j];
             aux++;
         }
+        *aux = '\n';
+        aux++;
     }
     *aux = '\0';
     return ans;
 }
+
+// Solve maze
+
 
 int main(){
 
