@@ -4,11 +4,28 @@
 #include <stdlib.h>
 // #include <string.h>
 
-// Maze class
+// TUPLE CLASS //
+struct Tuple {
+    int i;
+    int j;
+};
+
+struct Tuple* Tuple(int i, int j){
+    struct Tuple* ans = malloc(sizeof(struct Tuple));
+    ans->i = i;
+    ans->j = j;
+    return ans;
+}
+
+// END OF TUPLE CLASS//
+
+// MAZE CLASS //
 struct Maze {
     int rows;
     int columns;
     char** matrix;
+    struct Tuple start;
+    struct Tuple finish;
 };
 
 // Maze constructor, a function that returns a pointer to a new maze
@@ -42,8 +59,17 @@ struct Maze* Maze(char* maze_string){
     aux = maze_string; // Auxiliary pointer reset
     int i = 0; // row iteration variable
     int j = 0; // column iteration variable
+    int s = 0; // boolean start found
+    int f = 0; // boolean finished found
     while(aux && i<lRows) {
         if (*aux != '\n') {
+            if (*aux = 's'){
+                s = 1;
+                m->start = *Tuple(i,j);
+            } else if(*aux = 'f') {
+                f = 1;
+                m->finish = *Tuple(i,j);
+            }
             matrix[i][j] = *aux;
             j++;
         } else {
@@ -74,14 +100,15 @@ char* toString(struct Maze maze){
     return ans;
 }
 
+// END OF MAZE CLASS //
 // Solve maze
 
 
 int main(){
 
-    char* input = "## ##  #\n"
+    char* input = "s# ##  #\n"
                   "###   # \n"
-                  "###### #\0";
+                  "###### f\0";
     struct Maze* maze = Maze(input);
     printf("columns: %d\n", maze->columns);
     printf("rows: %d\n", maze->rows);
