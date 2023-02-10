@@ -27,7 +27,6 @@ struct Maze {
     struct Tuple start;
     struct Tuple finish;
 };
-
 // Maze constructor, a function that returns a pointer to a new maze
 struct Maze* Maze(char* maze_string){
     // Local counters, variables and pointers
@@ -49,12 +48,10 @@ struct Maze* Maze(char* maze_string){
     struct Maze *m = (struct Maze*) malloc(sizeof(struct Maze));
     (*m).rows = lRows;
     (*m).columns = lColumns;
-
     // Memory allocation for maze matrix
     char ** matrix = (char **) malloc(((*m).columns+1) * sizeof(char*));
     for (int i=0; i < lRows; i++)
         matrix[i] = (char*) malloc(((*m).columns + 1) * sizeof(char));
-
     // From string to matrix huzzah!
     aux = maze_string; // Auxiliary pointer reset
     int i = 0; // row iteration variable
@@ -83,7 +80,6 @@ struct Maze* Maze(char* maze_string){
     (*m).matrix = matrix;
     return m;
 };
-
 // Maze to String
 char* toString(struct Maze maze){
     char* ans = (char*) malloc(sizeof(char) * maze.columns * maze.rows + maze.rows);
@@ -100,7 +96,6 @@ char* toString(struct Maze maze){
     *aux = '\0';
     return ans;
 }
-
 struct Maze* copyMaze(struct Maze* maze){
     struct Maze* ans = malloc(sizeof(*maze));
     ans->columns = maze->columns;
@@ -116,17 +111,33 @@ struct Maze* copyMaze(struct Maze* maze){
     }
     return ans;
 }
-
 // END OF MAZE CLASS //
+
+// TUPLE STACK CLASS //
+struct TupleStack {
+    struct Tuple* list;
+    int size;
+};
+
+struct TupleStack* TupleStack(int maxSize){
+    struct TupleStack* ans = malloc(sizeof(TupleStack));
+    ans->list = malloc(maxSize);
+    ans->size = 0;
+    return ans;
+}
+
+struct Tuple pop (struct TupleStack* tupleStack){
+    return tupleStack->list[0];
+}
 
 // Solve maze //
 
 struct Maze* solveMazeDFS(struct Maze* maze){
-    struct Maze* ans = malloc(sizeof(maze));
+    struct Maze* ans = copyMaze(maze);
+    char ** matrix = ans->matrix;
 
     return ans;
 }
-
 
 int main(){
 
