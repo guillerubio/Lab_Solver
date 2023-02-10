@@ -51,7 +51,7 @@ struct Maze* Maze(char* maze_string){
     (*m).columns = lColumns;
 
     // Memory allocation for maze matrix
-    char ** matrix = (char **) malloc((*m).columns * sizeof(char*));
+    char ** matrix = (char **) malloc(((*m).columns+1) * sizeof(char*));
     for (int i=0; i < lRows; i++)
         matrix[i] = (char*) malloc(((*m).columns + 1) * sizeof(char));
 
@@ -62,11 +62,12 @@ struct Maze* Maze(char* maze_string){
     int s = 0; // boolean start found
     int f = 0; // boolean finished found
     while(aux && i<lRows) {
-        if (*aux != '\n') {
-            if (*aux = 's'){
+        if (*aux != '\n' && *aux != '\0') {
+            if (*aux == 's'){
                 s = 1;
                 m->start = *Tuple(i,j);
-            } else if(*aux = 'f') {
+            }
+            if(*aux == 'f') {
                 f = 1;
                 m->finish = *Tuple(i,j);
             }
@@ -100,8 +101,31 @@ char* toString(struct Maze maze){
     return ans;
 }
 
+struct Maze* copyMaze(struct Maze* maze){
+    struct Maze* ans = malloc(sizeof(*maze));
+    ans->columns = maze->columns;
+    ans->rows   = maze->rows;
+    ans->start  = *Tuple(maze->start.i, maze->start.j);
+    ans->finish = *Tuple(maze->finish.i, maze->finish.j);
+    ans->matrix = (char**)malloc(maze->rows * sizeof(char*));
+    for (int i = 0; i < maze->rows; i++) {
+        ans->matrix[i] = (char*)malloc(maze->columns * sizeof(char));
+        for (int j = 0; j < maze->columns; j++) {
+            ans->matrix[i][j] = maze->matrix[i][j];
+        }
+    }
+    return ans;
+}
+
 // END OF MAZE CLASS //
-// Solve maze
+
+// Solve maze //
+
+struct Maze* solveMazeDFS(struct Maze* maze){
+    struct Maze* ans = malloc(sizeof(maze));
+
+    return ans;
+}
 
 
 int main(){
@@ -115,10 +139,35 @@ int main(){
 
     char** matrix = (*maze).matrix;
     printf("address of matrix: %p\n", matrix);
-    printf("%c\n",matrix[0][0]);
+    printf("s = %d, %d\n", maze->start.i, maze->start.j);
+    printf("f = %d, %d\n", maze->finish.i, maze->finish.j);
+    printf("");
     char* totring = toString(*maze);
 
     printf("%s\n", totring);
+
+    printf("%c\n", maze->matrix[1][1]);
+
+    // copyMaze
+
+
+
+    printf("----CopyMaze----\n");
+
+    struct Maze* cmaze = copyMaze(maze);
+    printf("columns: %d\n", cmaze->columns);
+    printf("rows: %d\n", cmaze->rows);
+
+    char** cmatrix = (*cmaze).matrix;
+    printf("address of matrix: %p\n", cmatrix);
+    printf("s = %d, %d\n", cmaze->start.i, cmaze->start.j);
+    printf("f = %d, %d\n", cmaze->finish.i, cmaze->finish.j);
+    printf("");
+    char* ctotring = toString(*cmaze);
+
+    printf("%s\n", ctotring);
+    return 0;
+
     return 0;
 
 //    char *input = "  #  \n ##  \n#   #\n";
