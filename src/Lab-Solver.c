@@ -154,9 +154,9 @@ struct Maze* solveMazeDFS(struct Maze* maze, int noSolution) {
             foundAns = 1; // We're done bud
         } else {
             matrix[i1][j1] = 'x';
-            if (j1 < maze->columns && matrix[i1][j1 + 1] == ' ')  // right
+            if (j1 < maze->columns-1 && matrix[i1][j1 + 1] == ' ')  // right
                 push(toExplore, Tuple(i1, j1 + 1));
-            if (i1 < maze->rows && matrix[i1 + 1][j1] == ' ')  // down
+            if (i1 < maze->rows-1 && matrix[i1 + 1][j1] == ' ')  // down
                 push(toExplore, Tuple(i1 + 1, j1));
             if (j1 > 0 && matrix[i1][j1 - 1] == ' ')  // left
                 push(toExplore, Tuple(i1, j1 - 1));
@@ -177,9 +177,9 @@ int main() {
     push(stack, Tuple(2,2));
     printf("%d\n",pop(stack));
     printf("%d\n",pop(stack));
-    printf("%d\n",pop(stack)); */ 
+    printf("%d\n",pop(stack)); */
 
-/*
+
     char* input = "s  ##  #\n"
                   "#     # \n"
                   "#####  f\0";
@@ -196,7 +196,7 @@ int main() {
         printf("---Solved Maze---\n%s\n",toString(*solvedMaze));
     } else {
         printf("Oh no! This maze has no solution hon...");
-    } */
+    }
 
 
 }
