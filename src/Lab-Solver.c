@@ -127,16 +127,46 @@ struct TupleStack* TupleStack(int maxSize){
 }
 
 struct Tuple pop (struct TupleStack* tupleStack){
-    return tupleStack->list[0];
+    return tupleStack->list[tupleStack->size];
 }
+
+void push (struct TupleStack* tupleStack, struct Tuple* tuple) {
+    tupleStack->list[tupleStack->size] = *tuple;
+    tupleStack->size++;
+}
+// END OF TUPLE STACK CLASS //
 
 // Solve maze //
 
 struct Maze* solveMazeDFS(struct Maze* maze){
     struct Maze* ans = copyMaze(maze);
     char ** matrix = ans->matrix;
+    struct TupleStack* visited = TupleStack(maze->columns * maze->rows);
+    struct Tuple* weAt = Tuple(maze->start.i, maze->start.j);
+    push(visited,weAt);
+    int ansExists = 1;
+    int foundAns = 0;
+    while(!foundAns && visited->size != 0) {
+        struct Tuple analyzing = pop(visited);
+        int i1 = analyzing.i;
+        int j1 = analyzing.j;
+        if (matrix [i1][j1] == 'f') {
+            foundAns = 1; // I need to do something here I think
+        } else {
+            matrix [i1][j1] = 'x';
+            if (j1 < maze->columns && matrix [i1][j1+1] == ' ')  // right
+                push(visited,Tuple(i1, j1+1));
+            if (i1 < maze->rows && matrix [i1+1][j1] == ' ')  // down
+                push(visited,Tuple(i1+1, j1));
+            if (j1 > 0 && matrix [i1][j1-1] == ' ')  // left
+                push(visited,Tuple(i1, j1-1));
+            if (i1 > 0 && matrix [i1-1][j1] == ' ')  // up
+                push(visited,Tuple(i1-1, j1));
 
-    return ans;
+        }
+    }
+
+return ans;
 }
 
 int main(){
