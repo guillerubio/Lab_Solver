@@ -121,12 +121,13 @@ struct TupleStack {
 
 struct TupleStack* TupleStack(int maxSize){
     struct TupleStack* ans = malloc(sizeof(TupleStack));
-    ans->list = malloc(maxSize);
+    ans->list = malloc(maxSize * sizeof(struct Tuple));
     ans->size = 0;
     return ans;
 }
 
 struct Tuple pop (struct TupleStack* tupleStack){
+    tupleStack->size--;
     return tupleStack->list[tupleStack->size];
 }
 
@@ -138,93 +139,64 @@ void push (struct TupleStack* tupleStack, struct Tuple* tuple) {
 
 // Solve maze //
 
-struct Maze* solveMazeDFS(struct Maze* maze){
-    struct Maze* ans = copyMaze(maze);
-    char ** matrix = ans->matrix;
-    struct TupleStack* visited = TupleStack(maze->columns * maze->rows);
-    struct Tuple* weAt = Tuple(maze->start.i, maze->start.j);
-    push(visited,weAt);
-    int ansExists = 1;
+struct Maze* solveMazeDFS(struct Maze* maze, int noSolution) {
+    struct Maze *ans = copyMaze(maze); // Answer will be a copy of the maze, as to nt change it's original form
+    char **matrix = ans->matrix;
+    struct TupleStack *toExplore = TupleStack(maze->columns * maze->rows);
+    struct Tuple *weAt = Tuple(maze->start.i, maze->start.j);
+    push(toExplore, weAt);
     int foundAns = 0;
-    while(!foundAns && visited->size != 0) {
-        struct Tuple analyzing = pop(visited);
+    while (!foundAns && toExplore->size != 0) {
+        struct Tuple analyzing = pop(toExplore);
         int i1 = analyzing.i;
         int j1 = analyzing.j;
-        if (matrix [i1][j1] == 'f') {
-            foundAns = 1; // I need to do something here I think
+        if (matrix[i1][j1] == 'f') {
+            foundAns = 1; // We're done bud
         } else {
-            matrix [i1][j1] = 'x';
-            if (j1 < maze->columns && matrix [i1][j1+1] == ' ')  // right
-                push(visited,Tuple(i1, j1+1));
-            if (i1 < maze->rows && matrix [i1+1][j1] == ' ')  // down
-                push(visited,Tuple(i1+1, j1));
-            if (j1 > 0 && matrix [i1][j1-1] == ' ')  // left
-                push(visited,Tuple(i1, j1-1));
-            if (i1 > 0 && matrix [i1-1][j1] == ' ')  // up
-                push(visited,Tuple(i1-1, j1));
-
+            matrix[i1][j1] = 'x';
+            if (j1 < maze->columns && matrix[i1][j1 + 1] == ' ')  // right
+                push(toExplore, Tuple(i1, j1 + 1));
+            if (i1 < maze->rows && matrix[i1 + 1][j1] == ' ')  // down
+                push(toExplore, Tuple(i1 + 1, j1));
+            if (j1 > 0 && matrix[i1][j1 - 1] == ' ')  // left
+                push(toExplore, Tuple(i1, j1 - 1));
+            if (i1 > 0 && matrix[i1 - 1][j1] == ' ')  // up
+                push(toExplore, Tuple(i1 - 1, j1));
         }
     }
-
-return ans;
+    if (!foundAns) {
+        noSolution = -1;
+    }
+    return ans;
 }
 
-int main(){
+int main() {
+    /* struct TupleStack* stack = TupleStack(20);
+    push(stack, Tuple(0,0));
+    push(stack, Tuple(1,1));
+    push(stack, Tuple(2,2));
+    printf("%d\n",pop(stack));
+    printf("%d\n",pop(stack));
+    printf("%d\n",pop(stack)); */ 
 
-    char* input = "s# ##  #\n"
-                  "###   # \n"
-                  "###### f\0";
+/*
+    char* input = "s  ##  #\n"
+                  "#     # \n"
+                  "#####  f\0";
     struct Maze* maze = Maze(input);
     printf("columns: %d\n", maze->columns);
     printf("rows: %d\n", maze->rows);
-
-    char** matrix = (*maze).matrix;
-    printf("address of matrix: %p\n", matrix);
-    printf("s = %d, %d\n", maze->start.i, maze->start.j);
-    printf("f = %d, %d\n", maze->finish.i, maze->finish.j);
-    printf("");
+    printf("start = %d, %d\n", maze->start.i, maze->start.j);
+    printf("finish = %d, %d\n", maze->finish.i, maze->finish.j);
     char* totring = toString(*maze);
-
-    printf("%s\n", totring);
-
-    printf("%c\n", maze->matrix[1][1]);
-
-    // copyMaze
-
-
-
-    printf("----CopyMaze----\n");
-
-    struct Maze* cmaze = copyMaze(maze);
-    printf("columns: %d\n", cmaze->columns);
-    printf("rows: %d\n", cmaze->rows);
-
-    char** cmatrix = (*cmaze).matrix;
-    printf("address of matrix: %p\n", cmatrix);
-    printf("s = %d, %d\n", cmaze->start.i, cmaze->start.j);
-    printf("f = %d, %d\n", cmaze->finish.i, cmaze->finish.j);
-    printf("");
-    char* ctotring = toString(*cmaze);
-
-    printf("%s\n", ctotring);
-    return 0;
-
-    return 0;
-
-//    char *input = "  #  \n ##  \n#   #\n";
-//    struct maze *m = create_maze(input);
-//
-//    char* array = (char*) malloc(20*sizeof(char));
-//    strcpy(array, "buenas tardes");
-//    printf("%s\n",array);
-//    int b = 1;
-//    printf("%i\n",b);
-//    if (b) {
-//        printf("%s\n", "true");
-//    } else {
-//        printf("%s\n", "false");
-//  }
-
+    printf("---Unsolved Maze---\n%s\n", totring);
+    int isThereAns = 0;
+    struct Maze * solvedMaze = solveMazeDFS(maze, isThereAns);
+    if (isThereAns == 0) {
+        printf("---Solved Maze---\n%s\n",toString(*solvedMaze));
+    } else {
+        printf("Oh no! This maze has no solution hon...");
+    } */
 
 
 }
