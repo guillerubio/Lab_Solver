@@ -2,20 +2,30 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 // #include <string.h>
 
 // TUPLE CLASS //
 struct Tuple {
     int i;
     int j;
+    float distanceToF;
+    struct Tuple * prevTuple;
 };
 
 struct Tuple* Tuple(int i, int j){
     struct Tuple* ans = malloc(sizeof(struct Tuple));
     ans->i = i;
     ans->j = j;
+    ans->distanceToF = -1;
+    ans->prevTuple = NULL;
     return ans;
 }
+
+void path (struct Tuple* tuple, int distanceToF, struct Tuple * prevTuple) {
+    tuple->distanceToF = distanceToF;
+    tuple->prevTuple = prevTuple;
+};
 
 // END OF TUPLE CLASS//
 
@@ -113,56 +123,70 @@ struct Maze* copyMaze(struct Maze* maze){
 }
 // END OF MAZE CLASS //
 
-// TUPLE STACK CLASS //
-struct TupleStack {
+// TUPLE Queue CLASS //
+struct TupleQueue {
     struct Tuple* list;
     int size;
 };
 
-struct TupleStack* TupleStack(int maxSize){
-    struct TupleStack* ans = malloc(sizeof(TupleStack));
+struct TupleQueue* TupleQueue(int maxSize){
+    struct TupleQueue* ans = malloc(sizeof(TupleQueue));
     ans->list = malloc(maxSize * sizeof(struct Tuple));
     ans->size = 0;
     return ans;
 }
 
-struct Tuple pop (struct TupleStack* tupleStack){
-    tupleStack->size--;
-    return tupleStack->list[tupleStack->size];
+struct Tuple dequeue (struct TupleQueue* tupleQueue){
+    tupleQueue->size--;
+    struct Tuple ans = tupleQueue->list[0];
+    tupleQueue->list++;
+    return ans;
 }
 
-void push (struct TupleStack* tupleStack, struct Tuple* tuple) {
-    tupleStack->list[tupleStack->size] = *tuple;
-    tupleStack->size++;
+void enqueue (struct TupleQueue* tupleQueue, struct Tuple* tuple) {
+    tupleQueue->list[tupleQueue->size] = *tuple;
+    tupleQueue->size++;
+
 }
-// END OF TUPLE STACK CLASS //
+// END OF TUPLE Queue CLASS //
 
 // Solve maze //
 
 struct Maze* solveMazeDFS(struct Maze* maze, int noSolution) {
-    struct Maze *ans = copyMaze(maze); // Answer will be a copy of the maze, as to nt change it's original form
-    char **matrix = ans->matrix;
-    struct TupleStack *toExplore = TupleStack(maze->columns * maze->rows);
-    struct Tuple *weAt = Tuple(maze->start.i, maze->start.j);
-    push(toExplore, weAt);
-    int foundAns = 0;
-    while (!foundAns && toExplore->size != 0) {
-        struct Tuple analyzing = pop(toExplore);
+    struct Maze *ans = copyMaze(maze); // Copy of the maze
+    char **matrix = ans->matrix; // Matrix of the answer maze
+    struct TupleQueue *toVisit = TupleQueue(maze->columns * maze->rows); // Queue of coordinates to visit
+    struct Tuple *weAt = Tuple(maze->start.i, maze->start.j); // Where are we
+    enqueue(toVisit, weAt); // We need to visit the start
+    int foundAns = 0; // Boolean: Are we done?
+    struct Tuple fCoordinates; // finishTuple, will be the path to ans
+
+    while (!foundAns && toVisit->size != 0) { // We are doing this until we're done or there is no answer
+        struct Tuple analyzing = dequeue(toVisit);
         int i1 = analyzing.i;
         int j1 = analyzing.j;
-        if (matrix[i1][j1] == 'f') {
-            foundAns = 1; // We're done bud
-        } else {
-            matrix[i1][j1] = 'x';
-            if (j1 < maze->columns-1 && matrix[i1][j1 + 1] == ' ')  // right
-                push(toExplore, Tuple(i1, j1 + 1));
-            if (i1 < maze->rows-1 && matrix[i1 + 1][j1] == ' ')  // down
-                push(toExplore, Tuple(i1 + 1, j1));
-            if (j1 > 0 && matrix[i1][j1 - 1] == ' ')  // left
-                push(toExplore, Tuple(i1, j1 - 1));
-            if (i1 > 0 && matrix[i1 - 1][j1] == ' ')  // up
-                push(toExplore, Tuple(i1 - 1, j1));
+
+        if (j1 < maze->columns - 1 ) {  // right
+            if (matrix[i1][j1 + 1] == 'f') {
+                fCoordinates = *Tuple(i1, j1 + 1);
+                path(&fCoordinates, 0, &analyzing);
+                foundAns = 1;
+            }
+            if (matrix[i1][j1 + 1] == ' ') {
+                struct Tuple toEnqueue = *Tuple(i1, j1 + 1);
+                path(toEnqueue, sqrtf(ans->finish))
+            }
         }
+        if (i1 < maze->rows - 1 && matrix[i1 + 1][j1] == ' ') { // down
+            enqueue(toVisit, Tuple(i1 + 1, j1));
+        }
+        if (j1 > 0 && matrix[i1][j1 - 1] == ' ') {  // left
+        enqueue(toVisit, Tuple(i1, j1 - 1));
+        }
+        if (i1 > 0 && matrix[i1 - 1][j1] == ' ') { // up
+            enqueue(toVisit, Tuple(i1 - 1, j1));
+        }
+
     }
     if (!foundAns) {
         noSolution = -1;
@@ -171,18 +195,26 @@ struct Maze* solveMazeDFS(struct Maze* maze, int noSolution) {
 }
 
 int main() {
-    /* struct TupleStack* stack = TupleStack(20);
-    push(stack, Tuple(0,0));
-    push(stack, Tuple(1,1));
-    push(stack, Tuple(2,2));
-    printf("%d\n",pop(stack));
-    printf("%d\n",pop(stack));
-    printf("%d\n",pop(stack)); */
+     struct TupleQueue* queue = TupleQueue(20);
+    enqueue(queue, Tuple(0,0));
+    enqueue(queue, Tuple(1,1));
+    enqueue(queue, Tuple(2,2));
+    printf("%d\n",dequeue(queue));
+    printf("%d\n",dequeue(queue));
+    printf("%d\n",dequeue(queue));
 
 
-    char* input = "s  ##  #\n"
-                  "#     # \n"
-                  "#####  f\0";
+    char* input = "  #########\n"
+                  "  # #     #\n"
+                  "# # # #####\n"
+                  "#         #\n"
+                  "# ####### #\n"
+                  "# #     # #\n"
+                  "# ### # ###\n"
+                  "#     # # #\n"
+                  "##### ### #\n"
+                  "#          \n"
+                  "######### f";
     struct Maze* maze = Maze(input);
     printf("columns: %d\n", maze->columns);
     printf("rows: %d\n", maze->rows);
@@ -194,8 +226,12 @@ int main() {
     struct Maze * solvedMaze = solveMazeDFS(maze, isThereAns);
     if (isThereAns == 0) {
         printf("---Solved Maze---\n%s\n",toString(*solvedMaze));
+
     } else {
         printf("Oh no! This maze has no solution hon...");
+    }
+    for(int i = 0; i < 10000; i++) {
+        printf("\b\b");
     }
 
 
