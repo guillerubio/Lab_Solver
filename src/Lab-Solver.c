@@ -5,6 +5,30 @@
 #include <math.h>
 // #include <string.h>
 
+// TUPLE CLASS //
+struct Tuple {
+    int i;
+    int j;
+    float distanceToF;
+    struct Tuple * prevTuple;
+};
+
+struct Tuple* Tuple(int i, int j){
+    struct Tuple* ans = malloc(sizeof(struct Tuple));
+    ans->i = i;
+    ans->j = j;
+    ans->distanceToF = -1;
+    ans->prevTuple = NULL;
+    return ans;
+}
+
+void path (struct Tuple* tuple, int distanceToF, struct Tuple * prevTuple) {
+    tuple->distanceToF = distanceToF;
+    tuple->prevTuple = prevTuple;
+};
+
+// END OF TUPLE CLASS//
+
 // MAZE CLASS //
 struct Maze {
     int rows;
@@ -99,35 +123,11 @@ struct Maze* copyMaze(struct Maze* maze){
 }
 // END OF MAZE CLASS //
 
-// TUPLE CLASS //
-struct Tuple {
-    int i;
-    int j;
-    float distanceToF;
-    struct Tuple * prevTuple;
-};
-
-struct Tuple* Tuple(int i, int j){
-    struct Tuple* ans = malloc(sizeof(struct Tuple));
-    ans->i = i;
-    ans->j = j;
-    ans->distanceToF = -1;
-    ans->prevTuple = NULL;
+double distanceToF (struct Maze maze, struct Tuple* tuple) {
+    double ans = 0;
+    ans = sqrtf(pow(tuple->i - maze.finish.i,2) + pow(tuple->j - maze.finish.j,2));
     return ans;
 }
-
-void path (struct Tuple* tuple, int distanceToF, struct Tuple * prevTuple) {
-    tuple->distanceToF = distanceToF;
-    tuple->prevTuple = prevTuple;
-};
-
-double distanceToF (struct Maze maze, struct Tuple* tuple) {
-
-
-
-}
-
-// END OF TUPLE CLASS//
 
 // TUPLE Queue CLASS //
 struct TupleQueue {
@@ -180,21 +180,45 @@ struct Maze* solveMazeDFS(struct Maze* maze, int noSolution) {
             }
             if (matrix[i1][j1 + 1] == ' ') {
                 struct Tuple toEnqueue = *Tuple(i1, j1 + 1);
-                path(&toEnqueue, sqrtf(pow((ans->finish.i-ans->start.i),2) + pow((ans->finish.j - ans-> start.j), 2)), &analyzing);
+                path(&toEnqueue, distanceToF(*ans, &toEnqueue), &analyzing);
             }
         }
 
+        if (i1 < maze->rows - 1 ) {  // down
+            if (matrix[i1 + 1][j1] == 'f') {
+                fCoordinates = *Tuple(i1 + 1, j1);
+                path(&fCoordinates, 0, &analyzing);
+                foundAns = 1;
+            }
+            if (matrix[i1 + 1][j1] == ' ') {
+                struct Tuple toEnqueue = *Tuple(i1 + 1, j1);
+                path(&toEnqueue, distanceToF(*ans, &toEnqueue), &analyzing);
+            }
+        }
 
-        if (i1 < maze->rows - 1 && matrix[i1 + 1][j1] == ' ') { // down
-            enqueue(toVisit, Tuple(i1 + 1, j1));
-        }
-        if (j1 > 0 && matrix[i1][j1 - 1] == ' ') {  // left
-        enqueue(toVisit, Tuple(i1, j1 - 1));
-        }
-        if (i1 > 0 && matrix[i1 - 1][j1] == ' ') { // up
-            enqueue(toVisit, Tuple(i1 - 1, j1));
+        if (j1 > 0) {  // left
+            if (matrix[i1][j1 -1] == 'f') {
+                fCoordinates = *Tuple(i1, j1 - 1);
+                path(&fCoordinates, 0, &analyzing);
+                foundAns = 1;
+            }
+            if (matrix[i1][j1 - 1] == ' ') {
+                struct Tuple toEnqueue = *Tuple(i1, j1 - 1);
+                path(&toEnqueue, distanceToF(*ans, &toEnqueue), &analyzing);
+            }
         }
 
+        if (i1 > 0) {  // up
+            if (matrix[i1 -1][j1] == 'f') {
+                fCoordinates = *Tuple(i1 - 1, j1);
+                path(&fCoordinates, 0, &analyzing);
+                foundAns = 1;
+            }
+            if (matrix[i1][j1 - 1] == ' ') {
+                struct Tuple toEnqueue = *Tuple(i1 - 1, j1);
+                path(&toEnqueue, distanceToF(*ans, &toEnqueue), &analyzing);
+            }
+        }
     }
     if (!foundAns) {
         noSolution = -1;
@@ -212,7 +236,9 @@ int main() {
     printf("%d\n",dequeue(queue));
 
 
-    char* input = "  #########\n"
+
+
+    char* input = "s #########\n"
                   "  # #     #\n"
                   "# # # #####\n"
                   "#         #\n"
@@ -224,6 +250,9 @@ int main() {
                   "#          \n"
                   "######### f";
     struct Maze* maze = Maze(input);
+
+    printf("%f", distanceToF(*maze, &(maze->start)));
+
     printf("columns: %d\n", maze->columns);
     printf("rows: %d\n", maze->rows);
     printf("start = %d, %d\n", maze->start.i, maze->start.j);
