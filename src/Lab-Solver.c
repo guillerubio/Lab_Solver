@@ -166,65 +166,7 @@ struct Maze* solveMazeDFS(struct Maze* maze, int noSolution) {
     enqueue(toVisit, weAt); // We need to visit the start
     int foundAns = 0; // Boolean: Are we done?
     struct Tuple fCoordinates; // finishTuple, will be the path to ans
-
-    while (!foundAns && toVisit->size != 0) { // We are doing this until we're done or there is no answer
-        struct Tuple analyzing = dequeue(toVisit);
-        int i1 = analyzing.i;
-        int j1 = analyzing.j;
-
-        if (j1 < maze->columns - 1 ) {  // right
-            if (matrix[i1][j1 + 1] == 'f') {
-                fCoordinates = *Tuple(i1, j1 + 1);
-                path(&fCoordinates, 0, &analyzing);
-                foundAns = 1;
-            }
-            if (matrix[i1][j1 + 1] == ' ') {
-                struct Tuple toEnqueue = *Tuple(i1, j1 + 1);
-                path(&toEnqueue, distanceToF(*ans, &toEnqueue), &analyzing);
-            }
-        }
-
-        if (i1 < maze->rows - 1 ) {  // down
-            if (matrix[i1 + 1][j1] == 'f') {
-                fCoordinates = *Tuple(i1 + 1, j1);
-                path(&fCoordinates, 0, &analyzing);
-                foundAns = 1;
-            }
-            if (matrix[i1 + 1][j1] == ' ') {
-                struct Tuple toEnqueue = *Tuple(i1 + 1, j1);
-                path(&toEnqueue, distanceToF(*ans, &toEnqueue), &analyzing);
-            }
-        }
-
-        if (j1 > 0) {  // left
-            if (matrix[i1][j1 -1] == 'f') {
-                fCoordinates = *Tuple(i1, j1 - 1);
-                path(&fCoordinates, 0, &analyzing);
-                foundAns = 1;
-            }
-            if (matrix[i1][j1 - 1] == ' ') {
-                struct Tuple toEnqueue = *Tuple(i1, j1 - 1);
-                path(&toEnqueue, distanceToF(*ans, &toEnqueue), &analyzing);
-            }
-        }
-
-        if (i1 > 0) {  // up
-            if (matrix[i1 -1][j1] == 'f') {
-                fCoordinates = *Tuple(i1 - 1, j1);
-                path(&fCoordinates, 0, &analyzing);
-                foundAns = 1;
-            }
-            if (matrix[i1][j1 - 1] == ' ') {
-                struct Tuple toEnqueue = *Tuple(i1 - 1, j1);
-                path(&toEnqueue, distanceToF(*ans, &toEnqueue), &analyzing);
-            }
-        }
     }
-    if (!foundAns) {
-        noSolution = -1;
-    }
-    return ans;
-}
 
 int main() {
      struct TupleQueue* queue = TupleQueue(20);
@@ -266,9 +208,6 @@ int main() {
 
     } else {
         printf("Oh no! This maze has no solution hon...");
-    }
-    for(int i = 0; i < 10000; i++) {
-        printf("\b\b");
     }
 
 
