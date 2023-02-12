@@ -5,30 +5,6 @@
 #include <math.h>
 // #include <string.h>
 
-// TUPLE CLASS //
-struct Tuple {
-    int i;
-    int j;
-    float distanceToF;
-    struct Tuple * prevTuple;
-};
-
-struct Tuple* Tuple(int i, int j){
-    struct Tuple* ans = malloc(sizeof(struct Tuple));
-    ans->i = i;
-    ans->j = j;
-    ans->distanceToF = -1;
-    ans->prevTuple = NULL;
-    return ans;
-}
-
-void path (struct Tuple* tuple, int distanceToF, struct Tuple * prevTuple) {
-    tuple->distanceToF = distanceToF;
-    tuple->prevTuple = prevTuple;
-};
-
-// END OF TUPLE CLASS//
-
 // MAZE CLASS //
 struct Maze {
     int rows;
@@ -123,6 +99,36 @@ struct Maze* copyMaze(struct Maze* maze){
 }
 // END OF MAZE CLASS //
 
+// TUPLE CLASS //
+struct Tuple {
+    int i;
+    int j;
+    float distanceToF;
+    struct Tuple * prevTuple;
+};
+
+struct Tuple* Tuple(int i, int j){
+    struct Tuple* ans = malloc(sizeof(struct Tuple));
+    ans->i = i;
+    ans->j = j;
+    ans->distanceToF = -1;
+    ans->prevTuple = NULL;
+    return ans;
+}
+
+void path (struct Tuple* tuple, int distanceToF, struct Tuple * prevTuple) {
+    tuple->distanceToF = distanceToF;
+    tuple->prevTuple = prevTuple;
+};
+
+double distanceToF (struct Maze maze, struct Tuple* tuple) {
+
+
+
+}
+
+// END OF TUPLE CLASS//
+
 // TUPLE Queue CLASS //
 struct TupleQueue {
     struct Tuple* list;
@@ -174,9 +180,11 @@ struct Maze* solveMazeDFS(struct Maze* maze, int noSolution) {
             }
             if (matrix[i1][j1 + 1] == ' ') {
                 struct Tuple toEnqueue = *Tuple(i1, j1 + 1);
-                path(toEnqueue, sqrtf(ans->finish))
+                path(&toEnqueue, sqrtf(pow((ans->finish.i-ans->start.i),2) + pow((ans->finish.j - ans-> start.j), 2)), &analyzing);
             }
         }
+
+
         if (i1 < maze->rows - 1 && matrix[i1 + 1][j1] == ' ') { // down
             enqueue(toVisit, Tuple(i1 + 1, j1));
         }
