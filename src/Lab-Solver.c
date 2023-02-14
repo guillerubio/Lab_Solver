@@ -3,14 +3,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
- #include <string.h>
+#include <string.h>
 
 // TUPLE CLASS //
 struct Tuple {
     int i;
     int j;
     float distanceToF;
-    struct Tuple * prevTuple;
 };
 
 struct Tuple* buildTuple(int i, int j){
@@ -25,10 +24,12 @@ void distance (struct Tuple* tuple, int distanceToF) {
     tuple->distanceToF = distanceToF;
 };
 
-char *tupleToString(struct Tuple tuple) {
+char *tupleToString(struct Tuple * tuple) {
+    if(tuple == NULL)
+        return "NULL";
     char str[8]; // Create an array to store the string
     // Use sprintf to format the string and store it in the array
-    sprintf(str, "(%d, %d)", tuple.i, tuple.j);
+    sprintf(str, "(%d, %d)", tuple->i, tuple->j);
     // Allocate memory for the result string and copy the contents of the array
     char *result = malloc(strlen(str) + 1);
     strcpy(result, str);
@@ -138,28 +139,32 @@ double distanceToF (struct Maze maze, struct Tuple* tuple) {
 
 // TUPLE Queue CLASS // -> Checked
 struct TupleQueue {
-    struct Tuple* list;
+    struct Tuple **list;
     int size;
 };
 
-struct TupleQueue* TupleQueue(int maxSize){
-    struct TupleQueue* ans = malloc(sizeof(TupleQueue));
-    ans->list = malloc(maxSize * sizeof(struct Tuple));
+struct TupleQueue *buildTupleQueue(int maxSize) {
+    struct TupleQueue *ans = malloc(sizeof(struct TupleQueue));
+    ans->list = malloc(maxSize * sizeof(struct Tuple *));
     ans->size = 0;
     return ans;
 }
 
-struct Tuple dequeue (struct TupleQueue* tupleQueue){
-    tupleQueue->size--;
-    struct Tuple ans = tupleQueue->list[0];
-    tupleQueue->list++;
+struct Tuple *dequeue(struct TupleQueue *tQ) {
+    if (tQ->size == 0) {
+        return NULL;
+    }
+    --tQ->size;
+    struct Tuple *ans = tQ->list[0];
+    for (int i = 1; i <= tQ->size; i++) {
+        tQ->list[i-1] = tQ->list[i];
+    }
     return ans;
 }
 
-void enqueue (struct TupleQueue* tupleQueue, struct Tuple* tuple) {
-    tupleQueue->list[tupleQueue->size] = *tuple;
-    tupleQueue->size++;
-
+void enqueue(struct TupleQueue *tQ, struct Tuple *tuple) {
+    tQ->list[tQ->size] = tuple;
+    ++tQ->size;
 }
 // END OF TUPLE Queue CLASS //
 
@@ -169,24 +174,24 @@ int arrayCorr (struct Tuple tuple, struct Maze maze){
 
 struct Tuple ** neighbours (struct Maze maze, struct Tuple tuple, int * numNeighbours ) {
     *numNeighbours = 0;
-    if (tuple.j < maze.columns - 1 && maze.matrix[tuple.i][tuple.j+1] == ' ') ++(*numNeighbours); // right
-    if (tuple.i < maze.rows - 1 && maze.matrix[tuple.i + 1][tuple.j] == ' ') ++(*numNeighbours); // down
-    if (tuple.j > 0 && maze.matrix[tuple.i][tuple.j - 1] == ' ') ++(*numNeighbours); // left
-    if (tuple.i > 0 && maze.matrix[tuple.i - 1][tuple.j] == ' ') ++(*numNeighbours); // up
+    if (tuple.j < maze.columns - 1 && (maze.matrix[tuple.i][tuple.j+1] == ' ' || maze.matrix[tuple.i][tuple.j+1] == 'f' )) ++(*numNeighbours); // right
+    if (tuple.i < maze.rows - 1 && (maze.matrix[tuple.i + 1][tuple.j] == ' ' || maze.matrix[tuple.i + 1][tuple.j] == 'f' )) ++(*numNeighbours); // down
+    if (tuple.j > 0 && (maze.matrix[tuple.i][tuple.j - 1] == ' ' || maze.matrix[tuple.i][tuple.j - 1] == 'f')) ++(*numNeighbours); // left
+    if (tuple.i > 0 && (maze.matrix[tuple.i - 1][tuple.j] == ' ' || maze.matrix[tuple.i - 1][tuple.j] == 'f')) ++(*numNeighbours); // up
     struct Tuple **ans = malloc(*numNeighbours * sizeof(struct Tuple*)); // Create an array that can contain every neighbour
 
     if (*numNeighbours != 0) { // We only do this if there is actually any neighbours to return
         int index = 0;
-        if (tuple.j < maze.columns - 1 && maze.matrix[tuple.i][tuple.j+1] == ' ') { // right
+        if (tuple.j < maze.columns - 1 && (maze.matrix[tuple.i][tuple.j+1] == ' ' || maze.matrix[tuple.i][tuple.j+1] == 'f' )) { // right
             ans[index++] = buildTuple(tuple.i, tuple.j + 1);
         }
-        if (tuple.i < maze.rows - 1 && maze.matrix[tuple.i + 1][tuple.j] == ' ') { // down
+        if (tuple.i < maze.rows - 1 && (maze.matrix[tuple.i + 1][tuple.j] == ' ' || maze.matrix[tuple.i + 1][tuple.j] == 'f' )) { // down
             ans[index++] = buildTuple(tuple.i + 1, tuple.j);
         }
-        if (tuple.j > 0 && maze.matrix[tuple.i][tuple.j - 1] == ' ') { // left
+        if (tuple.j > 0 && (maze.matrix[tuple.i][tuple.j - 1] == ' ' || maze.matrix[tuple.i][tuple.j - 1] == 'f')) { // left
             ans[index++] = buildTuple(tuple.i, tuple.j - 1);
         }
-        if (tuple.i > 0 && maze.matrix[tuple.i - 1][tuple.j] == ' ') { // up
+        if (tuple.i > 0 && (maze.matrix[tuple.i - 1][tuple.j] == ' ' || maze.matrix[tuple.i - 1][tuple.j] == 'f')) { // up
             ans[index++] = buildTuple(tuple.i - 1, tuple.j);
         }
     }
@@ -196,68 +201,161 @@ struct Tuple ** neighbours (struct Maze maze, struct Tuple tuple, int * numNeigh
 // Solve maze //
 
 struct Tuple** solveMazeDFS (struct Maze* maze, int noSolution) {
-    struct TupleQueue * toVisit = TupleQueue((maze->columns) * (maze->rows)); // Cells to visit
+    struct TupleQueue * toVisit = buildTupleQueue((maze->columns) * (maze->rows)); // Cells to visit
+
     enqueue(toVisit, &maze->start);
+
+
+
+
     int arrSize = (maze->columns) * (maze->rows);
     int visited [arrSize]; // Array, have we visited the cell?
     for (int i = 0; i < arrSize; i++)  // We have not visited any cells
         visited[i] = 0;
     visited[arrayCorr(maze->start, *maze)] = 1; // We have visited starter node
-    for (int i = 0; i < arrSize; i++)
+    /*for (int i = 0; i < arrSize; i++)
         printf("%d, ", visited [i]);
 
-    printf("\n");
+    printf("\n");*/
 
+    struct Tuple * tTuple [arrSize];
+    struct Tuple ** prevTuple = malloc(sizeof(tTuple));
+    for (int i = 0; i < arrSize; i++) {
+        prevTuple[i] = NULL;
+    }
+    /*printf("prev Tuple = [");
+    for (int i = 0; i < arrSize; i++) {
+        printf("%s, ", tupleToString(prevTuple[i]));
+    }
+    printf("]\n");*/
+    //int iteration = 0;
 
+    while(toVisit->size > 0) { // While we still have cells to visit
+        //printf("---- iteration %d ----\n", iteration);
 
-    /*
-    struct Tuple * prevTuple [arrSize];
-    while(toVisit.size != 0) { // While we still have cells to visit
-        struct Tuple visiting = dequeue(&toVisit);
-        // For each neighbour, if it hasn't been visited, enqueue it, mark it as visited, and save it's parent node in it's correspondant slot in the prev array
-        int n = 0;
-        int * numNeighbours = &n;
-        struct Tuple ** arrNeigh = neighbours(*maze, visiting, numNeighbours);
-        for (int i = 0; i < *numNeighbours; i++){
+        struct Tuple * visiting = dequeue(toVisit);
+
+       // printf("Visiting: %s\n", tupleToString(visiting));
+
+        // For each neighbour, if it hasn't been visited, enqueue it, mark it as visited, and save its parent node in it's correspondant slot in the prev array
+        int numNeighbours = 0;
+        // Neighbour array
+        struct Tuple ** arrNeigh = neighbours(*maze, *visiting, &numNeighbours);
+       /* for (int i = 0; i < numNeighbours; i++) {
+            printf("Neighbour %d: %s", i+1 ,tupleToString(arrNeigh[i]));
+            printf("\n");
+        }*/
+
+        for (int i = 0; i < numNeighbours; i++){ // for each neighbour
             struct Tuple * neighbour = arrNeigh[i];
             int arC = 0;
             arC = arrayCorr(*neighbour, *maze);
+            //printf("Neighbour %d saved in prevTuple[%d] \n", i+1, arC);
             if(!visited[arC]) {
-                enqueue(&toVisit,neighbour); // enqueue it
+                enqueue(toVisit,neighbour); // enqueue it
                 visited[arC] = 1; // mark it as visited
-                *prevTuple[arC] = visiting; // save its parent node
+                prevTuple[arC] = visiting; // save its parent node
             }
         }
+
+        //printf("Queue.size= %d \n", toVisit->size);
+
+
+/*
+        for (int i = 0; i < arrSize; i++)
+            printf("%d, ", visited [i]);
+*/
+       // iteration++;
     }
+   /* printf("arrSize = %d\n", arrSize);
+    printf("prev Tuple = [");
     for (int i = 0; i < arrSize; i++) {
-        printf("%d",* visited[i]);
-    } printf("\n");
-    return prevTuple; */
+        printf("%s, ", tupleToString(prevTuple[i]));
+    }
+    printf("]\n"); */
+    return prevTuple;
+} // end of solveMazeDFS
+
+struct Tuple** path (struct Maze* maze, struct Tuple** search, int * pathSize) {
+    struct Tuple * a [maze->columns * maze->rows];
+    struct Tuple ** ans = malloc(sizeof (a));
+    *pathSize = 0;
+    struct Tuple t = maze->finish;
+    while (t.i != maze->start.i && t.j != maze->start.j){
+        ans[*pathSize] = &t;
+        ++*pathSize;
+        int arC = arrayCorr(t, *maze);
+        printf(tupleToString(&t));
+        t = *search[arC];
+
+    }
+    return ans;
 }
 
 int main() {
 
-    char* input = "###########\n"
+   /* struct TupleQueue * t = buildTupleQueue(3);
+    enqueue(t, buildTuple(0,0));
+    enqueue(t, buildTuple(1,1));
+    enqueue(t, buildTuple(2,2));
+
+    printf("size = %d \n", t->size);
+    printf(tupleToString(dequeue(t)));
+    printf("size = %d \n", t->size);
+    printf(tupleToString(dequeue(t)));
+    printf("size = %d \n", t->size);
+    printf(tupleToString(dequeue(t)));
+    printf("size = %d \n", t->size); */
+
+
+    char* input = "s##########\n"
                   "  # #     #\n"
                   "# # # #####\n"
                   "#         #\n"
                   "# ####### #\n"
-                  "# #     # #\n"
-                  "# ### # ###\n"
+                  "# #     ## \n"
+                  "# # # # ###\n"
                   "#     # # #\n"
-                  "##### ### #\n"
+                  "### # ### #\n"
                   "#          \n"
-                  "#########s#";
+                  "####### #f ";
     struct Maze* maze = Maze(input);
+    printf ("s = %s\n", tupleToString(&maze->start));
+    printf ("f = %s\n", tupleToString(&maze->finish));
+/*
+    printf("start = %s ", tupleToString(&maze->start));
 
     int numN = 0;
-    struct Tuple ** n = neighbours(*maze, maze->start, &numN);
+    struct Tuple ** n = neighbours(*maze, *buildTuple(0,10), &numN);
     printf("Number of neighbours = %d \n", numN);
-    printf("Neighbour 1: (%d, %d), code = %d \n" , n[0]->i, n[0]->j, arrayCorr(*n[0],*maze));
-    printf("start = %s ", tupleToString(maze->start));
+
+
+    for (int i = 0; i < numN; i++) {
+        printf("Neighbour %d: %s", i+1 ,tupleToString(n[i]));
+        printf("\n");
+    }
+
+*/
     //printf("Neighbour 2: (%d, %d), code = %d \n" , n[1]->i, n[1]->j,arrayCorr(*n[1],*maze));
 
-    struct Tuple ** path = solveMazeDFS(maze, 0);
+    struct Tuple ** search = solveMazeDFS(maze, 0);
+    printf("prevTuple = [");
+    for(int i = 0; i < 121; i++)
+        printf("%s, ", tupleToString(search[i]));
+    printf("] \n");
+
+
+
+    printf (tupleToString(search[arrayCorr(maze->finish, *maze)]));
+    int pS = 0;
+    struct Tuple ** p = path(maze, search, &pS);
+    printf("path = [");
+    /*for(int i = 0; i < pS; i++)
+        printf("%s, ", tupleToString(p[i]));
+    printf("] \n");*/
+
+
+
     //struct Tuple t = *path[0];
    // printf("(%d, %d), ", t.i, t.j);
 
