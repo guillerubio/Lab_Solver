@@ -16,13 +16,8 @@ struct Tuple* buildTuple(int i, int j){
     struct Tuple* ans = malloc(sizeof(struct Tuple));
     ans->i = i;
     ans->j = j;
-    ans->distanceToF = -1;
     return ans;
 }
-
-void distance (struct Tuple* tuple, int distanceToF) {
-    tuple->distanceToF = distanceToF;
-};
 
 char *tupleToString(struct Tuple * tuple) {
     if(tuple == NULL)
@@ -276,39 +271,26 @@ struct Tuple** solveMazeDFS (struct Maze* maze, int noSolution) {
     return prevTuple;
 } // end of solveMazeDFS
 
-struct Tuple** path (struct Maze* maze, struct Tuple** search, int * pathSize) {
-    struct Tuple * a [maze->columns * maze->rows];
-    struct Tuple ** ans = malloc(sizeof (a));
+struct Tuple **path(struct Maze *maze, struct Tuple **search, int *pathSize) {
+    struct Tuple **ans = malloc(maze->columns * maze->rows * sizeof(struct Tuple *));
     *pathSize = 0;
-    struct Tuple t = maze->finish;
-    while (t.i != maze->start.i && t.j != maze->start.j){
-        ans[*pathSize] = &t;
-        ++*pathSize;
-        int arC = arrayCorr(t, *maze);
-        printf(tupleToString(&t));
-        t = *search[arC];
+    struct Tuple *t = &maze->finish;
+    while (t->i != maze->start.i || t->j != maze->start.j) {
+        ans[*pathSize] = t;
 
+        int arC = arrayCorr(*t, *maze);
+        //printf(tupleToString(t));
+        t = search[arC];
+        ++*pathSize;
     }
+    ans[*pathSize] = &maze->start;
+    ++*pathSize;
     return ans;
 }
 
+
 int main() {
-
-   /* struct TupleQueue * t = buildTupleQueue(3);
-    enqueue(t, buildTuple(0,0));
-    enqueue(t, buildTuple(1,1));
-    enqueue(t, buildTuple(2,2));
-
-    printf("size = %d \n", t->size);
-    printf(tupleToString(dequeue(t)));
-    printf("size = %d \n", t->size);
-    printf(tupleToString(dequeue(t)));
-    printf("size = %d \n", t->size);
-    printf(tupleToString(dequeue(t)));
-    printf("size = %d \n", t->size); */
-
-
-    char* input = "s##########\n"
+    char* input = " ######s###\n"
                   "  # #     #\n"
                   "# # # #####\n"
                   "#         #\n"
@@ -339,20 +321,20 @@ int main() {
     //printf("Neighbour 2: (%d, %d), code = %d \n" , n[1]->i, n[1]->j,arrayCorr(*n[1],*maze));
 
     struct Tuple ** search = solveMazeDFS(maze, 0);
-    printf("prevTuple = [");
-    for(int i = 0; i < 121; i++)
+    //printf("prevTuple = [");
+    /*for(int i = 0; i < 121; i++)
         printf("%s, ", tupleToString(search[i]));
-    printf("] \n");
+    printf("] \n");*/
 
 
 
-    printf (tupleToString(search[arrayCorr(maze->finish, *maze)]));
+    //printf (tupleToString(search[arrayCorr(maze->finish, *maze)]));
     int pS = 0;
     struct Tuple ** p = path(maze, search, &pS);
     printf("path = [");
-    /*for(int i = 0; i < pS; i++)
+    for(int i = 0; i < pS; i++)
         printf("%s, ", tupleToString(p[i]));
-    printf("] \n");*/
+    printf("] \n");
 
 
 
