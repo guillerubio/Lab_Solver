@@ -22,7 +22,7 @@ struct Tuple* buildTuple(int i, int j){
 char *tupleToString(struct Tuple * tuple) {
     if(tuple == NULL)
         return "NULL";
-    char str[8]; // Create an array to store the string
+    char str[15]; // Create an array to store the string
     // Use sprintf to format the string and store it in the array
     sprintf(str, "(%d, %d)", tuple->i, tuple->j);
     // Allocate memory for the result string and copy the contents of the array
@@ -300,7 +300,7 @@ int main() {
                   "#     # # #\n"
                   "### # ### #\n"
                   "#          \n"
-                  "####### #f ";
+                  "####### # f";
     struct Maze* maze = Maze(input);
     printf ("s = %s\n", tupleToString(&maze->start));
     printf ("f = %s\n", tupleToString(&maze->finish));
