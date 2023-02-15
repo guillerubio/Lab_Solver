@@ -199,7 +199,7 @@ struct Tuple ** neighbours (struct Maze maze, struct Tuple tuple, int * numNeigh
 /* Solve maze */
 /* "searchMazeDFS" searches the Maze in a Breadth First Search fashion, and returns a Tuple pointer array with the
  * parent array of each blank coordinate of the maze in its corresponding spot, given by "arrayCorr"*/
-struct Tuple** searchMazeDFS (struct Maze* maze, int noSolution) {
+struct Tuple** searchMazeBFS (struct Maze* maze) {
     struct TupleQueue * toVisit = buildTupleQueue((maze->columns) * (maze->rows)); // Cells to visit
     enqueue(toVisit, &maze->start);
     int arrSize = (maze->columns) * (maze->rows);
@@ -230,38 +230,47 @@ struct Tuple** searchMazeDFS (struct Maze* maze, int noSolution) {
     return prevTuple;
 } // end of searchMazeDFS
 
+/* "path" is a function that returns a Tuple pointer array that represents the shortest path from f to
+ * s, yes, it's backwards, backtracking from the finish Tuple to the start Tuple with the use of the
+ * parent array given by the "searchMazeDFS"*/
 struct Tuple **path(struct Maze *maze, struct Tuple **search, int *pathSize) {
-    struct Tuple **ans = malloc(maze->columns * maze->rows * sizeof(struct Tuple *));
+    struct Tuple **ans = malloc(maze->columns * maze->rows * sizeof(struct Tuple *)); // Memory allocation of the answer
     *pathSize = 0;
-    struct Tuple *t = &maze->finish;
-    while (t->i != maze->start.i || t->j != maze->start.j) {
-        ans[*pathSize] = t;
-
+    struct Tuple *t = &maze->finish; // Finish Tuple of maze
+    while (t != NULL) { // We do this until there is no parent Tuple
+        ans[*pathSize] = t; // Tuple t is now t's parent
         int arC = arrayCorr(*t, *maze);
-        //printf(tupleToString(t));
-        t = search[arC];
-        ++*pathSize;
+        t = search[arC]; // We save t in its spot
+        ++*pathSize; // Next spot of the ans array
     }
-    ans[*pathSize] = &maze->start;
-    ++*pathSize;
-    return ans;
-}
+    //ans[*pathSize] = &maze->start; // Lastly, we save the start Tuple from maze in ans
+    //++*pathSize;
 
-struct Maze * solveMaze (struct Maze maze){
+    return ans;
+} // end of "path"
+
+/* "solveMaze" is a function that returns a Maze pointer to the solved maze, changing the chars of the
+ *  matrix representing the shortest path to 'x'. It utilizes both the search algorithm "searchMazeBFS"
+ *  and the backtracking algorithm "path"*/
+struct Maze * solveMaze (struct Maze maze, int * isThereAns){
     struct Maze * ans = copyMaze(&maze);
-    struct Tuple ** search = searchMazeDFS(&maze, 0);
+    struct Tuple ** search = searchMazeBFS(&maze); // BFS search
     int pS = 0;
-    struct Tuple ** p = path(&maze, search, &pS);
-    for(int k = 0; k < pS; k++){
+    struct Tuple ** p = path(&maze, search, &pS); // path
+    for(int k = 0; k < pS; k++){ // Visual representation
         struct Tuple changing = *p[k];
         int i = changing.i;
         int j = changing.j;
         if (ans->matrix[changing.i][changing.j] == ' ')
             ans->matrix[changing.i][changing.j] = 'x';
     }
+    if (p[pS-1]->i == ans->start.i && p[pS-1]->j == ans->start.j) { // If we cannot backtrack until the start, that means the maze has no path from s to f
+        *isThereAns = 1;
+    } else {
+        *isThereAns = 0;
+    }
     return ans;
 }
-
 
 int main() {
     char* input1 = " ######s###\n"
@@ -281,7 +290,7 @@ int main() {
                   "##### # ##### # ####### # ### ### ### # # ##### # # ##### # #\n"
                   "# #   #     #     #     #   # #   #   #     # #   #     # # #\n"
                   "# # ####### ### ########### # ### # ####### # # # ##### ### #\n"
-                  "# #       # #     # #             #   #   #     #   #       #\n"
+                  "# #       # #     # #             #   #   #     #   #     # #\n"
                   "# # # ### # ### ### ### # ##### ##### ### ### ##### # ##### #\n"
                   "#   #   #         #     #     # #   #         # # #       # #\n"
                   "# ##### # ### # ### ### ### ##### ##### ####### # ### ##### #\n"
@@ -292,10 +301,13 @@ int main() {
     printf ("s = %s\n", tupleToString(&maze->start));
     printf ("f = %s\n", tupleToString(&maze->finish));
 
-    struct Tuple ** search = searchMazeDFS(maze, 0);
+    struct Tuple ** search = searchMazeBFS(maze);
 
 
+    int isThereAns = 0;
 
-    printf("--OUTPUT MAZE-- \n%s\n", mazeToString(*solveMaze(*maze)));
+    printf("--OUTPUT MAZE-- \n%s\n", mazeToString(*solveMaze(*maze, &isThereAns)));
+    printf("ans? = %d", isThereAns);
+
 
 }
