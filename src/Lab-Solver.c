@@ -307,7 +307,7 @@ int main() {
                   "# #         #        \n"
                   "###################f";
 
-    char* input = "s  ########################################################################################\n"
+    char* input3 = "s  ########################################################################################\n"
                    "         #  #                    #           #     #  #  #  #     #              #        #\n"
                    "#  #  ####  #  #######  #  #  ####  #############  #  #  #  #  #  #######  #  #  #######  #\n"
                    "#  #  #  #           #  #  #  #        #     #     #     #     #           #  #  #  #  #  #\n"
@@ -376,7 +376,36 @@ int main() {
     }
     input[i] = '\0';  // Null-terminate the string */
 
-    struct Maze* maze = buildMaze(input);
+    int maxLineLength = 1000;
+
+        char maze_str[maxLineLength];
+        char* maze_ptr = maze_str;
+        int maze_size = 0;
+
+        // read the maze from console
+        while (fgets(maze_ptr, maxLineLength, stdin)) {
+            maze_size += strlen(maze_ptr);
+            maze_ptr += maze_size;
+        }
+
+        // allocate memory for the maze string
+        char* input = (char*) malloc(sizeof(char) * (maze_size + 1));
+        if (input == NULL) {
+            printf("Error: could not allocate memory for maze string\n");
+            exit(1);
+        }
+
+        // copy the maze to the maze string
+        strcpy(input, maze_str);
+
+        printf("Maze: \n%s", input);
+
+
+
+
+
+
+    struct Maze* maze = buildMaze(maze_str);
     printf("--INPUT MAZE-- \n %s \n", mazeToString(*maze));
     printf ("s = %s\n", tupleToString(&maze->start));
     printf ("f = %s\n", tupleToString(&maze->finish));
@@ -389,5 +418,6 @@ int main() {
     printf("--OUTPUT MAZE-- \n%s\n", mazeToString(*solveMaze(*maze, &isThereAns)));
     printf("ans? = %d", isThereAns);
 
+    free(maze);
 
 }
